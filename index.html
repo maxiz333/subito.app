@@ -33,8 +33,9 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .save-indicator.show{opacity:1}
 
 /* ── CONTROLS BAR ── */
-.controls{display:flex;gap:6px;margin-bottom:8px;align-items:center}
-.search-box{flex:1;min-width:0;max-width:180px;padding:8px 10px;border:1px solid var(--bord);border-radius:8px;background:var(--surf);color:var(--txt);font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
+.controls{display:flex;gap:6px;margin-bottom:8px;align-items:center;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.controls::-webkit-scrollbar{display:none}
+.search-box{flex:1;min-width:80px;max-width:160px;padding:8px 10px;border:1px solid var(--bord);border-radius:8px;background:var(--surf);color:var(--txt);font-family:'DM Sans',sans-serif;font-size:13px;outline:none}
 .search-box:focus{border-color:var(--acc)}
 .search-box::placeholder{color:var(--dim)}
 .icon-btn{width:34px;height:34px;border:1px solid var(--bord);border-radius:8px;background:var(--surf);color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
@@ -46,6 +47,8 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .icon-btn[disabled]{opacity:.3;pointer-events:none}
 .icon-btn .badge-dot-small{position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1px solid var(--bg)}
 .icon-btn{position:relative}
+.icon-btn::after{content:attr(data-tip);position:absolute;top:38px;left:50%;transform:translateX(-50%);background:#000;color:#fff;font-size:10px;font-weight:600;padding:3px 7px;border-radius:5px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;font-family:'DM Sans',sans-serif;z-index:50}
+.icon-btn:hover::after{opacity:1}
 
 /* ── FILTER STRIP ── */
 .filter-strip{display:flex;gap:5px;margin-bottom:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
@@ -95,11 +98,19 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .b-none{background:var(--surf2);color:var(--dim);border:1px solid var(--bord)}
 .price-tag{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;color:var(--acc);margin-left:auto;white-space:nowrap}
 
-.card-actions{display:flex;flex-direction:column;gap:4px;flex-shrink:0}
-.mini-btn{width:26px;height:26px;border:none;border-radius:6px;background:transparent;color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center}
-.mini-btn:active{background:var(--surf2)}
+.card-actions{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+.mini-btn{width:32px;height:32px;border:1px solid transparent;border-radius:7px;background:var(--surf2);color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative}
+.mini-btn:hover{color:var(--txt);border-color:var(--bord)}
+.mini-btn:active{transform:scale(.92)}
+.mini-btn.del{color:var(--dim)}
+.mini-btn.del:hover{background:var(--red2);color:var(--red);border-color:var(--red)}
 .mini-btn.del:active{background:var(--red2);color:var(--red)}
+.mini-btn.dup:hover{background:var(--grn2);color:var(--grn);border-color:var(--grn)}
 .mini-btn.dup:active{background:var(--grn2);color:var(--grn)}
+.mini-btn.exp-btn:hover{background:var(--blu2);color:var(--blu);border-color:var(--blu)}
+/* tooltip */
+.mini-btn::after{content:attr(data-tip);position:absolute;right:38px;top:50%;transform:translateY(-50%);background:#000;color:#fff;font-size:10px;font-weight:600;padding:3px 7px;border-radius:5px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;font-family:'DM Sans',sans-serif;z-index:10}
+.mini-btn:hover::after{opacity:1}
 
 /* desc preview */
 .desc-prev{font-size:11.5px;color:var(--dim);line-height:1.55;padding:0 10px 4px;white-space:pre-wrap;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -120,7 +131,10 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 .fi{width:100%;background:var(--bg);border:1px solid var(--bord);border-radius:6px;padding:7px 9px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:12.5px;outline:none;transition:border-color .15s}
 .fi:focus{border-color:var(--acc)}
 .fi::placeholder{color:var(--bord2)}
-textarea.fi{resize:none;min-height:72px;max-height:500px;overflow-y:hidden;line-height:1.55}
+textarea.fi{resize:vertical;min-height:120px;max-height:70vh;overflow-y:auto;line-height:1.55;-webkit-overflow-scrolling:touch}
+textarea.fi.expanded{max-height:70vh}
+.desc-expand-btn{margin-top:4px;background:var(--surf2);border:1px solid var(--bord);border-radius:6px;color:var(--dim);font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;align-self:flex-start;transition:all .15s}
+.desc-expand-btn:hover{color:var(--acc);border-color:var(--acc)}
 select.fi{cursor:pointer;appearance:none;padding-right:20px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%238b8c99'%3E%3Cpath d='M2 3l3 4 3-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
 .fi.mono{font-family:'Space Mono',monospace;font-size:11.5px}
 .fi.right{text-align:right}
@@ -166,7 +180,7 @@ select.fi{cursor:pointer;appearance:none;padding-right:20px;background-image:url
 
 /* desc sheet */
 .desc-sh-title{font-size:14px;font-weight:700;color:var(--acc);margin-bottom:6px}
-.desc-sh-body{font-size:13px;line-height:1.7;color:var(--txt);white-space:pre-wrap;word-break:break-word}
+.desc-sh-body{font-size:13px;line-height:1.7;color:var(--txt);white-space:pre-wrap;word-break:break-word;max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 
 /* export sheet */
 .export-box{background:var(--bg);border:1px solid var(--bord);border-radius:8px;padding:12px;font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;max-height:340px;overflow-y:auto;color:var(--txt);user-select:all}
@@ -233,23 +247,24 @@ select.fi{cursor:pointer;appearance:none;padding-right:20px;background-image:url
 <!-- CONTROLS -->
 <div class="controls">
   <input type="search" class="search-box" placeholder="🔍 Cerca…" oninput="filterCards(this.value)" id="searchBox">
-  <button class="icon-btn accent" onclick="addCard()" title="Aggiungi">
+  <button class="icon-btn accent" onclick="addCard()" data-tip="Aggiungi articolo">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
   </button>
-  <button class="icon-btn" id="btnUndo" onclick="undo()" title="Annulla" disabled>
+  <button class="icon-btn" id="btnUndo" onclick="undo()" data-tip="Annulla (Ctrl+Z)" disabled>
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 10h11a5 5 0 0 1 0 10H9"/><polyline points="3,6 3,10 7,10"/></svg>
   </button>
-  <button class="icon-btn" id="btnRedo" onclick="redo()" title="Ripristina" disabled>
+  <button class="icon-btn" id="btnRedo" onclick="redo()" data-tip="Ripristina (Ctrl+Y)" disabled>
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10H10a5 5 0 0 0 0 10h5"/><polyline points="21,6 21,10 17,10"/></svg>
   </button>
-  <button class="icon-btn ora" id="btnTrash" onclick="openSheet('trashSh')" title="Cestino">
+  <button class="icon-btn ora" id="btnTrash" onclick="openSheet('trashSh')" data-tip="Cestino">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3,6 21,6"/><path d="M5,6V20a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V6"/><path d="M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/></svg>
     <span class="badge-dot-small" id="trashDot" style="display:none"></span>
   </button>
-  <button class="icon-btn red" onclick="deleteSelected()" title="Elimina sel.">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3,6 21,6"/><path d="M5,6V20a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V6"/></svg>
+  <button class="icon-btn" id="btnDelSel" onclick="deleteSelected()" data-tip="Elimina articoli spuntati" style="display:none;background:var(--red2);border-color:var(--red);color:var(--red);width:auto;padding:0 10px;gap:4px;font-size:11px;font-weight:700;font-family:'DM Sans',sans-serif">
+    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3,6 21,6"/><path d="M5,6V20a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V6"/><path d="M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/></svg>
+    <span id="btnDelSelCount">Elimina</span>
   </button>
-  <button class="icon-btn" onclick="exportCSV()" title="CSV">
+  <button class="icon-btn" onclick="exportCSV()" data-tip="Esporta CSV">
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2,9L2,11L11,11L11,9"/><path d="M6.5,1L6.5,8"/><polyline points="4,6 6.5,8 9,6"/></svg>
   </button>
 </div>
@@ -292,13 +307,16 @@ select.fi{cursor:pointer;appearance:none;padding-right:20px;background-image:url
   </div>
 </div>
 
-<!-- DESC SHEET -->
+<!-- DESC EDIT SHEET -->
 <div class="overlay" id="descSh" onclick="closeSheet('descSh')">
   <div class="sheet" onclick="event.stopPropagation()">
     <div class="sh-handle"></div>
-    <div class="sh-title"><span>📝 Descrizione</span><button class="sh-close" onclick="closeSheet('descSh')">✕</button></div>
-    <div class="desc-sh-title" id="descShTitle"></div>
-    <div class="desc-sh-body" id="descShBody"></div>
+    <div class="sh-title">
+      <span>✏️ <span id="descShTitle" style="color:var(--acc)"></span></span>
+      <button class="sh-close" onclick="closeSheet('descSh')">✕</button>
+    </div>
+    <textarea id="descShEdit" style="width:100%;height:60vh;background:var(--bg);border:1px solid var(--bord);border-radius:8px;padding:12px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:13px;line-height:1.6;resize:none;outline:none;-webkit-overflow-scrolling:touch" placeholder="Descrizione…" oninput="saveDescSheet()"></textarea>
+    <button class="copy-btn" style="margin-top:10px;background:var(--acc)" onclick="closeSheet('descSh')">✅ Chiudi e salva</button>
   </div>
 </div>
 
@@ -474,12 +492,25 @@ function deleteSelected() {
   const sel = items.filter(i=>i.checked);
   sel.forEach(s=>trash.unshift(s));
   items = items.filter(i=>!i.checked);
-  snap(); render(); updateUndoUI();
+  snap(); render(); updateUndoUI(); updateDelSelBtn();
 }
 
 function toggleCheck(id) {
   const item = items.find(i=>i.id===id);
-  if (item) { item.checked = !item.checked; render(); }
+  if (item) { item.checked = !item.checked; render(); updateDelSelBtn(); }
+}
+
+function updateDelSelBtn() {
+  const sel = items.filter(i=>i.checked).length;
+  const btn = document.getElementById('btnDelSel');
+  const lbl = document.getElementById('btnDelSelCount');
+  if (!btn) return;
+  if (sel > 0) {
+    btn.style.display = 'flex';
+    lbl.textContent = 'Elimina ' + sel;
+  } else {
+    btn.style.display = 'none';
+  }
 }
 
 function toggleExpand(id) {
@@ -518,8 +549,23 @@ function updateField(id, field, value) {
 }
 
 function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 500)+'px';
+  // scroll naturale gestito da CSS
+}
+
+function expandDesc(id) {
+  var item = items.find(function(i){ return i.id===id; });
+  if (!item) return;
+  item.descExpanded = !item.descExpanded;
+  applyDescExpand(id);
+}
+
+function applyDescExpand(id) {
+  var item = items.find(function(i){ return i.id===id; });
+  if (!item) return;
+  var ta = document.getElementById('desc-ta-' + id);
+  var btn = document.getElementById('desc-exp-btn-' + id);
+  if (ta) ta.style.maxHeight = item.descExpanded ? '70vh' : '320px';
+  if (btn) btn.textContent = item.descExpanded ? '↕ Riduci' : '↕ Espandi';
 }
 
 // ════════════════════════════════════════════
@@ -605,12 +651,23 @@ function pickImg(cb){ const i=document.createElement('input'); i.type='file'; i.
 // ════════════════════════════════════════════
 //  DESC / EXPORT SHEETS
 // ════════════════════════════════════════════
+let currentDescId = null;
+
 function openDescSheet(id) {
   const item = items.find(i=>i.id===id);
   if (!item) return;
-  document.getElementById('descShTitle').textContent = item.title||'';
-  document.getElementById('descShBody').textContent = item.description||'(nessuna descrizione)';
+  currentDescId = id;
+  document.getElementById('descShTitle').textContent = item.title || '(senza titolo)';
+  document.getElementById('descShEdit').value = item.description || '';
   openSheet('descSh');
+  setTimeout(()=>document.getElementById('descShEdit').focus(), 300);
+}
+
+function saveDescSheet() {
+  if (currentDescId === null) return;
+  const val = document.getElementById('descShEdit').value;
+  const item = items.find(i=>i.id===currentDescId);
+  if (item) { item.description = val; debouncedSnap(); }
 }
 
 function openExportSheet(id) {
@@ -843,14 +900,14 @@ function render() {
           </div>
         </div>
         <div class="card-actions">
-          <button class="mini-btn dup" onclick="dupCard(${item.id})" title="Duplica">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M5 16H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"/></svg>
+          <button class="mini-btn dup" onclick="dupCard(${item.id})" data-tip="Duplica">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M5 16H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"/></svg>
           </button>
-          <button class="mini-btn" onclick="openExportSheet(${item.id})" title="Esporta annuncio">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16,6 12,2 8,6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+          <button class="mini-btn exp-btn" onclick="openExportSheet(${item.id})" data-tip="Copia testo per Subito">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/><line x1="15" y1="3" x2="15" y2="7"/><line x1="13" y1="5" x2="17" y2="5"/></svg>
           </button>
-          <button class="mini-btn del" onclick="deleteRow(${item.id})" title="Elimina">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="10" y2="10"/><line x1="10" y1="3" x2="3" y2="10"/></svg>
+          <button class="mini-btn del" onclick="deleteRow(${item.id})" data-tip="Elimina">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6"/><path d="M14,11v6"/><path d="M9,6V4a1,1,0,0,1,1-1h4a1,1,0,0,1,1,1V6"/></svg>
           </button>
         </div>
       </div>
@@ -873,7 +930,8 @@ function render() {
         </div>
         <div class="fl">
           <label>Descrizione</label>
-          <textarea class="fi" placeholder="Descrizione completa…" oninput="autoResize(this);updateField(${item.id},'description',this.value)">${escHtml(item.description)}</textarea>
+          <textarea class="fi" id="desc-ta-${item.id}" placeholder="Descrizione completa…" oninput="updateField(${item.id},'description',this.value)">${escHtml(item.description)}</textarea>
+          <button type="button" class="desc-expand-btn" onclick="openDescSheet(${item.id})">↕ Espandi e modifica</button>
         </div>
         <div class="fl">
           <label>Note interne (non vanno nell'annuncio)</label>
@@ -909,7 +967,9 @@ function render() {
   }).join('');
 
   updateStats();
-  setTimeout(()=>document.querySelectorAll('textarea.fi').forEach(autoResize),0);
+  setTimeout(()=>{
+    items.forEach(item=>{ if(item.descExpanded) applyDescExpand(item.id); });
+  }, 0);
 }
 
 // ════════════════════════════════════════════
