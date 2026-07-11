@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Subito.it — Articoli</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
 :root {
   --bg:#0e0f13; --surf:#16171d; --surf2:#1e1f27;
@@ -393,12 +396,23 @@ function mkItem() {
 // ════════════════════════════════════════════
 function saveToStorage() {
   try {
+    const now = Date.now();
     localStorage.setItem('subito_items', JSON.stringify(items));
     localStorage.setItem('subito_nextId', nextId);
     localStorage.setItem('subito_trash', JSON.stringify(trash));
-    const ind = document.getElementById('saveInd');
-    if (ind) { ind.classList.add('show'); setTimeout(()=>ind.classList.remove('show'), 1500); }
+    localStorage.setItem('subito_lastSaved', now);
   } catch(e){}
+  // Salva anche su Firebase
+  if (window.fbDb) {
+    firebase.database().ref('subitoapp').set({
+      items: items,
+      nextId: nextId,
+      trash: trash,
+      lastSaved: Date.now()
+    }).catch(e=>console.warn('[FB] Errore salvataggio:', e));
+  }
+  const ind = document.getElementById('saveInd');
+  if (ind) { ind.classList.add('show'); setTimeout(()=>ind.classList.remove('show'), 1500); }
 }
 
 function loadFromStorage() {
@@ -1658,9 +1672,66 @@ Dettagli vendita:
   });
 }
 
-render();
-snap();
-updateUndoUI();
+// ════════════════════════════════════════════
+//  FIREBASE INIT
+// ════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyCQoogyJStX5M2TnlP4ssWTOkCx54eCxf8",
+  authDomain: "subitapp-7d0ff.firebaseapp.com",
+  databaseURL: "https://subitapp-7d0ff-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "subitapp-7d0ff",
+  storageBucket: "subitapp-7d0ff.firebasestorage.app",
+  messagingSenderId: "134700161555",
+  appId: "1:134700161555:web:32842fc25df817601e3de6"
+};
+
+try {
+  firebase.initializeApp(firebaseConfig);
+  window.fbDb = firebase.database();
+  console.log('[FB] Connesso a Firebase');
+
+  // Carica dati da Firebase (sovrascrive localStorage se più recenti)
+  firebase.database().ref('subitoapp').once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (data && data.items) {
+      const fbTime = data.lastSaved || 0;
+      const lsTime = parseInt(localStorage.getItem('subito_lastSaved') || '0');
+      if (fbTime >= lsTime) {
+        items = data.items || [];
+        nextId = data.nextId || 1;
+        trash = data.trash || [];
+        console.log('[FB] Dati caricati da Firebase (' + items.length + ' articoli)');
+        // aggiorna anche localStorage
+        localStorage.setItem('subito_items', JSON.stringify(items));
+        localStorage.setItem('subito_nextId', nextId);
+        localStorage.setItem('subito_trash', JSON.stringify(trash));
+      }
+    }
+    render();
+    snap();
+    updateUndoUI();
+    showSyncBanner('☁️ Sincronizzato con Firebase');
+  }).catch(e => {
+    console.warn('[FB] Caricamento fallito, uso localStorage:', e);
+    render();
+    snap();
+    updateUndoUI();
+  });
+
+} catch(e) {
+  console.warn('[FB] Init fallita:', e);
+  render();
+  snap();
+  updateUndoUI();
+}
+
+function showSyncBanner(msg) {
+  const ind = document.getElementById('saveInd');
+  if (!ind) return;
+  ind.textContent = msg;
+  ind.classList.add('show');
+  setTimeout(() => { ind.classList.remove('show'); ind.textContent = '✓ Salvato'; }, 2000);
+}
 
 document.addEventListener('keydown', e => {
   if (e.key==='Escape') ['photoSh','descSh','exportSh','trashSh','summarySh'].forEach(s=>closeSheet(s));
