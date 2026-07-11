@@ -647,9 +647,14 @@ function openPhotoSheet(id) {
 }
 function renderPhotoGrid(item) {
   document.getElementById('photoGrid').innerHTML = item.photos.map((p,idx)=>
-    p ? `<div class="pslot has" onclick="toggleSlotOv(this)"><img src="${p}" alt="${idx+1}">
-           <div class="pslot-ov"><button class="ov-ch" onclick="event.stopPropagation();changeSlot(${item.id},${idx})">Cambia</button>
-           <button class="ov-rm" onclick="event.stopPropagation();removeSlot(${item.id},${idx})">Rimuovi</button></div></div>`
+    p ? `<div class="pslot has" onclick="toggleSlotOv(this)">
+           <img src="${p}" alt="${idx+1}" style="opacity:${p.startsWith('blob:')?'0.5':'1'}">
+           ${p.startsWith('blob:') ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700">⏳</div>' : ''}
+           <div class="pslot-ov">
+             <button class="ov-ch" onclick="event.stopPropagation();changeSlot(${item.id},${idx})">Cambia</button>
+             <button class="ov-rm" onclick="event.stopPropagation();removeSlot(${item.id},${idx})">Rimuovi</button>
+           </div>
+         </div>`
     : `<div class="pslot" onclick="addSlot(${item.id},${idx})"><span class="pslot-n">${idx+1}</span><span class="pslot-l">+ Aggiungi</span></div>`
   ).join('');
 }
@@ -657,10 +662,57 @@ function toggleSlotOv(el) {
   document.querySelectorAll('.pslot.show-ov').forEach(s=>{ if(s!==el) s.classList.remove('show-ov'); });
   el.classList.toggle('show-ov');
 }
-function addSlot(id,idx) { pickImg(f=>{ const r=new FileReader(); r.onload=ev=>{ const item=items.find(i=>i.id===id); if(item){item.photos[idx]=ev.target.result;renderPhotoGrid(item);snap();} }; r.readAsDataURL(f); }); }
-function changeSlot(id,idx){ addSlot(id,idx); }
-function removeSlot(id,idx){ const item=items.find(i=>i.id===id); if(item){item.photos[idx]=null;renderPhotoGrid(item);snap();} }
-function pickImg(cb){ const i=document.createElement('input'); i.type='file'; i.accept='image/*'; i.onchange=e=>{if(e.target.files[0])cb(e.target.files[0]);}; i.click(); }
+const CLOUDINARY_CLOUD = 'c8i3qkht';
+const CLOUDINARY_PRESET = 'subito_photos';
+
+function addSlot(id, idx) {
+  pickImg(async file => {
+    const item = items.find(i=>i.id===id);
+    if (!item) return;
+    // mostra anteprima locale subito
+    const localUrl = URL.createObjectURL(file);
+    item.photos[idx] = localUrl;
+    renderPhotoGrid(item);
+    showUploadProgress(idx, 0);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', CLOUDINARY_PRESET);
+      formData.append('folder', 'subito/' + id);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (data.secure_url) {
+        item.photos[idx] = data.secure_url;
+        renderPhotoGrid(item);
+        snap();
+        console.log('[Cloudinary] Foto caricata:', data.secure_url);
+      } else {
+        console.error('[Cloudinary] Errore:', data);
+        alert('Errore caricamento foto. Riprova.');
+      }
+    } catch(e) {
+      console.error('[Cloudinary] Upload fallito:', e);
+      alert('Errore connessione. Riprova.');
+    }
+  });
+}
+function changeSlot(id, idx) { addSlot(id, idx); }
+function removeSlot(id, idx) {
+  const item = items.find(i=>i.id===id);
+  if (item) { item.photos[idx]=null; renderPhotoGrid(item); snap(); }
+}
+function pickImg(cb) {
+  const i = document.createElement('input');
+  i.type='file'; i.accept='image/*';
+  i.onchange = e => { if(e.target.files[0]) cb(e.target.files[0]); };
+  i.click();
+}
+function showUploadProgress(idx, pct) {
+  // future use
+}
 
 // ════════════════════════════════════════════
 //  DESC / EXPORT SHEETS
@@ -989,10 +1041,52 @@ function render() {
 // ════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════
-const hasData = loadFromStorage();
+function initApp() {
+  const hasData = loadFromStorage();
+  if (!hasData) { loadImportedData(); }
 
-if (!hasData) {
-  // carica dati da Excel
+  try {
+    if (typeof firebase === 'undefined') throw new Error('Firebase SDK non caricato');
+
+    firebase.initializeApp(firebaseConfig);
+    window.fbDb = firebase.database();
+    console.log('[FB] Connesso a Firebase');
+
+    firebase.database().ref('subitoapp').once('value').then(snapshot => {
+      const data = snapshot.val();
+      if (data && data.items && data.items.length > 0) {
+        const fbTime = data.lastSaved || 0;
+        const lsTime = parseInt(localStorage.getItem('subito_lastSaved') || '0');
+        if (fbTime >= lsTime) {
+          items = data.items || [];
+          nextId = data.nextId || 1;
+          trash = data.trash || [];
+          console.log('[FB] Dati caricati da Firebase (' + items.length + ' articoli)');
+          console.log('[FB] Esempio item[0] status:', items[0] && items[0].status);
+          localStorage.setItem('subito_items', JSON.stringify(items));
+          localStorage.setItem('subito_nextId', nextId);
+          localStorage.setItem('subito_trash', JSON.stringify(trash));
+        }
+      }
+      // resetta filtri a "tutti" per sicurezza
+      filterOrig = 'all';
+      filterStatus = 'all';
+      render(); snap(); updateUndoUI();
+      showSyncBanner('☁️ Sincronizzato con Firebase');
+    }).catch(e => {
+      console.warn('[FB] Caricamento fallito, uso localStorage:', e);
+      filterOrig = 'all'; filterStatus = 'all';
+      render(); snap(); updateUndoUI();
+    });
+
+  } catch(e) {
+    console.warn('[FB] Init fallita:', e);
+    filterOrig = 'all'; filterStatus = 'all';
+    render(); snap(); updateUndoUI();
+  }
+}
+
+window.addEventListener('load', initApp);
 
 // ── DATI IMPORTATI DA EXCEL (descrizioni complete) ──
 const importedData = [
@@ -1661,6 +1755,7 @@ Dettagli vendita:
   }
 ];
 
+function loadImportedData() {
   importedData.forEach(d => {
     const item = mkItem();
     Object.assign(item, {
