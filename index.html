@@ -5,9 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Subito.it — Articoli</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
 :root {
   --bg:#0e0f13; --surf:#16171d; --surf2:#1e1f27;
@@ -928,6 +925,7 @@ function render() {
   const visible = visibleItems();
 
   list.innerHTML = visible.map((item,i) => {
+    if (!item.photos || !Array.isArray(item.photos)) item.photos = [null,null,null,null,null,null,null,null];
     const fp=item.photos.find(p=>p)||null, pc=item.photos.filter(Boolean).length;
     const oCls=item.origine==='casa'?'c-casa':item.origine==='lavoro'?'c-lavoro':'';
     const descPrev=item.description;
@@ -1086,7 +1084,7 @@ function initApp() {
   }
 }
 
-window.addEventListener('load', initApp);
+// initApp viene chiamata dopo il caricamento degli script Firebase in fondo alla pagina
 
 // ── DATI IMPORTATI DA EXCEL (descrizioni complete) ──
 const importedData = [
@@ -1834,5 +1832,9 @@ document.addEventListener('keydown', e => {
   if (e.ctrlKey && e.key==='y') { e.preventDefault(); redo(); }
 });
 </script>
+<!-- Firebase caricato qui per essere sicuri che sia pronto -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>initApp();</script>
 </body>
 </html>
