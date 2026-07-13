@@ -1059,6 +1059,13 @@ function initApp() {
           items = data.items || [];
           nextId = data.nextId || 1;
           trash = data.trash || [];
+          // normalizza ogni item
+          items = items.map(item => ({
+            ...mkItem(),
+            ...item,
+            photos: Array.isArray(item.photos) ? item.photos : [null,null,null,null,null,null,null,null],
+            priceHistory: Array.isArray(item.priceHistory) ? item.priceHistory : []
+          }));
           console.log('[FB] Dati caricati da Firebase (' + items.length + ' articoli)');
           console.log('[FB] Esempio item[0] status:', items[0] && items[0].status);
           localStorage.setItem('subito_items', JSON.stringify(items));
