@@ -1848,6 +1848,8 @@ function forceSaveToFirebase() {
     alert('❌ Errore: ' + e.message);
   });
 }
+
+function showSyncBanner(msg) {
   const ind = document.getElementById('saveInd');
   if (!ind) return;
   ind.textContent = msg;
