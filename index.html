@@ -1086,7 +1086,11 @@ function initApp() {
           items = items.map(item => ({
             ...mkItem(),
             ...item,
-            photos: Array.isArray(item.photos) ? item.photos : [null,null,null,null,null,null,null,null],
+            photos: Array.isArray(item.photos) 
+              ? [...Array(8)].map((_,i) => item.photos[i] || null)
+              : (item.photos && typeof item.photos === 'object')
+                ? [...Array(8)].map((_,i) => item.photos[i] || null)
+                : [null,null,null,null,null,null,null,null],
             priceHistory: Array.isArray(item.priceHistory) ? item.priceHistory : []
           }));
           console.log('[FB] Dati caricati da Firebase (' + items.length + ' articoli)');
