@@ -394,6 +394,8 @@ function mkItem() {
 // ════════════════════════════════════════════
 //  LOCALSTORAGE
 // ════════════════════════════════════════════
+let fbLoaded = false; // diventa true solo dopo aver ricevuto i dati da Firebase
+
 function saveToStorage() {
   try {
     const now = Date.now();
@@ -402,8 +404,8 @@ function saveToStorage() {
     localStorage.setItem('subito_trash', JSON.stringify(trash));
     localStorage.setItem('subito_lastSaved', now);
   } catch(e){}
-  // Salva anche su Firebase
-  if (window.fbDb) {
+  // Salva su Firebase SOLO se già caricato (evita sovrascrittura dati freschi)
+  if (window.fbDb && fbLoaded) {
     firebase.database().ref('subitoapp').set({
       items: items,
       nextId: nextId,
@@ -1078,13 +1080,14 @@ function initApp() {
           localStorage.setItem('subito_trash', JSON.stringify(trash));
         }
       }
-      // resetta filtri a "tutti" per sicurezza
+      fbLoaded = true; // da qui in poi possiamo salvare su Firebase
       filterOrig = 'all';
       filterStatus = 'all';
       render(); snap(); updateUndoUI();
       showSyncBanner('☁️ Sincronizzato con Firebase');
     }).catch(e => {
       console.warn('[FB] Caricamento fallito, uso localStorage:', e);
+      fbLoaded = true; // anche in caso di errore permettiamo il salvataggio
       filterOrig = 'all'; filterStatus = 'all';
       render(); snap(); updateUndoUI();
     });
