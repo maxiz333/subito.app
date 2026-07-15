@@ -657,10 +657,24 @@ function renderPhotoGrid(item) {
            <div class="pslot-ov">
              <button class="ov-ch" onclick="event.stopPropagation();changeSlot(${item.id},${idx})">Cambia</button>
              <button class="ov-rm" onclick="event.stopPropagation();removeSlot(${item.id},${idx})">Rimuovi</button>
+             <button class="ov-ch" style="background:var(--blu2);color:var(--blu)" onclick="event.stopPropagation();copyPhoto('${p}',${idx})">📋 Copia</button>
            </div>
          </div>`
     : `<div class="pslot" onclick="addSlot(${item.id},${idx})"><span class="pslot-n">${idx+1}</span><span class="pslot-l">+ Aggiungi</span></div>`
   ).join('');
+}
+
+async function copyPhoto(url, idx) {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+    alert('✅ Foto copiata! Ora vai su Subito e incolla.');
+  } catch(e) {
+    // fallback: apri la foto in nuova scheda così puoi copiarla manualmente
+    window.open(url, '_blank');
+    alert('Foto aperta in nuova scheda — tieni premuto per copiarla.');
+  }
 }
 function toggleSlotOv(el) {
   document.querySelectorAll('.pslot.show-ov').forEach(s=>{ if(s!==el) s.classList.remove('show-ov'); });
