@@ -267,7 +267,9 @@ select.fi{cursor:pointer;appearance:none;padding-right:20px;background-image:url
     <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3,6 21,6"/><path d="M5,6V20a2,2,0,0,0,2,2H17a2,2,0,0,0,2-2V6"/><path d="M8,6V4a2,2,0,0,1,2-2h4a2,2,0,0,1,2,2V6"/></svg>
     <span id="btnDelSelCount">Elimina</span>
   </button>
-  <button class="icon-btn" onclick="exportCSV()" data-tip="Esporta CSV">
+  <button class="icon-btn" onclick="forceSaveToFirebase()" data-tip="Forza salvataggio su Firebase" style="background:var(--pur2);border-color:var(--pur);color:var(--pur)">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="23,4 23,10 17,10"/><path d="M20.49,15a9,9,0,1,1-2.12-9.36L23,10"/></svg>
+  </button>
     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2,9L2,11L11,11L11,9"/><path d="M6.5,1L6.5,8"/><polyline points="4,6 6.5,8 9,6"/></svg>
   </button>
 </div>
@@ -1833,7 +1835,19 @@ try {
   updateUndoUI();
 }
 
-function showSyncBanner(msg) {
+function forceSaveToFirebase() {
+  if (!window.fbDb) { alert('Firebase non connesso!'); return; }
+  firebase.database().ref('subitoapp').set({
+    items: items,
+    nextId: nextId,
+    trash: trash,
+    lastSaved: Date.now()
+  }).then(() => {
+    alert('✅ Salvato su Firebase! (' + items.length + ' articoli)');
+  }).catch(e => {
+    alert('❌ Errore: ' + e.message);
+  });
+}
   const ind = document.getElementById('saveInd');
   if (!ind) return;
   ind.textContent = msg;
