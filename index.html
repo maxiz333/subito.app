@@ -1919,6 +1919,8 @@ function restoreJSON() {
   };
   input.click();
 }
+
+function forceSaveToFirebase() {
   if (!window.fbDb) { alert('Firebase non connesso!'); return; }
   firebase.database().ref('subitoapp').set({
     items: items,
