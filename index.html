@@ -1089,65 +1089,6 @@ function render() {
 // ════════════════════════════════════════════
 //  INIT
 // ════════════════════════════════════════════
-function initApp() {
-  const hasData = loadFromStorage();
-  if (!hasData) { loadImportedData(); }
-
-  try {
-    if (typeof firebase === 'undefined') throw new Error('Firebase SDK non caricato');
-    // evita doppia inizializzazione
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    window.fbDb = firebase.database();
-    console.log('[FB] Connesso a Firebase');
-
-    firebase.database().ref('subitoapp').once('value').then(snapshot => {
-      const data = snapshot.val();
-      if (data && data.items && data.items.length > 0) {
-        const fbTime = data.lastSaved || 0;
-        const lsTime = parseInt(localStorage.getItem('subito_lastSaved') || '0');
-        if (fbTime >= lsTime) {
-          items = data.items || [];
-          nextId = data.nextId || 1;
-          trash = data.trash || [];
-          // normalizza ogni item
-          items = items.map(item => ({
-            ...mkItem(),
-            ...item,
-            photos: Array.isArray(item.photos) 
-              ? [...Array(8)].map((_,i) => item.photos[i] || null)
-              : (item.photos && typeof item.photos === 'object')
-                ? [...Array(8)].map((_,i) => item.photos[i] || null)
-                : [null,null,null,null,null,null,null,null],
-            priceHistory: Array.isArray(item.priceHistory) ? item.priceHistory : []
-          }));
-          console.log('[FB] Dati caricati da Firebase (' + items.length + ' articoli)');
-          console.log('[FB] Esempio item[0] status:', items[0] && items[0].status);
-          localStorage.setItem('subito_items', JSON.stringify(items));
-          localStorage.setItem('subito_nextId', nextId);
-          localStorage.setItem('subito_trash', JSON.stringify(trash));
-        }
-      }
-      fbLoaded = true; // da qui in poi possiamo salvare su Firebase
-      filterOrig = 'all';
-      filterStatus = 'all';
-      render(); snap(); updateUndoUI();
-      showSyncBanner('☁️ Sincronizzato con Firebase');
-    }).catch(e => {
-      console.warn('[FB] Caricamento fallito, uso localStorage:', e);
-      fbLoaded = true; // anche in caso di errore permettiamo il salvataggio
-      filterOrig = 'all'; filterStatus = 'all';
-      render(); snap(); updateUndoUI();
-    });
-
-  } catch(e) {
-    console.warn('[FB] Init fallita:', e);
-    filterOrig = 'all'; filterStatus = 'all';
-    render(); snap(); updateUndoUI();
-  }
-}
-
 // initApp viene chiamata dopo il caricamento degli script Firebase in fondo alla pagina
 
 // ── DATI IMPORTATI DA EXCEL (descrizioni complete) ──
@@ -1842,44 +1783,56 @@ const firebaseConfig = {
   appId: "1:134700161555:web:32842fc25df817601e3de6"
 };
 
-try {
-  firebase.initializeApp(firebaseConfig);
-  window.fbDb = firebase.database();
-  console.log('[FB] Connesso a Firebase');
+function initApp() {
+  const hasData = loadFromStorage();
+  if (!hasData) { loadImportedData(); }
 
-  // Carica dati da Firebase (sovrascrive localStorage se più recenti)
-  firebase.database().ref('subitoapp').once('value').then(snapshot => {
-    const data = snapshot.val();
-    if (data && data.items) {
-      const fbTime = data.lastSaved || 0;
-      const lsTime = parseInt(localStorage.getItem('subito_lastSaved') || '0');
-      if (fbTime >= lsTime) {
-        items = data.items || [];
-        nextId = data.nextId || 1;
-        trash = data.trash || [];
-        console.log('[FB] Dati caricati da Firebase (' + items.length + ' articoli)');
-        // aggiorna anche localStorage
-        localStorage.setItem('subito_items', JSON.stringify(items));
-        localStorage.setItem('subito_nextId', nextId);
-        localStorage.setItem('subito_trash', JSON.stringify(trash));
+  try {
+    if (typeof firebase === 'undefined') throw new Error('Firebase SDK non caricato');
+    if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
+    window.fbDb = firebase.database();
+    console.log('[FB] Connesso a Firebase');
+
+    firebase.database().ref('subitoapp').once('value').then(snapshot => {
+      const data = snapshot.val();
+      if (data && data.items) {
+        const fbTime = data.lastSaved || 0;
+        const lsTime = parseInt(localStorage.getItem('subito_lastSaved') || '0');
+        if (fbTime >= lsTime) {
+          items = data.items || [];
+          nextId = data.nextId || 1;
+          trash = data.trash || [];
+          items = items.map(item => ({
+            ...mkItem(), ...item,
+            photos: Array.isArray(item.photos)
+              ? [...Array(8)].map((_,i) => item.photos[i] || null)
+              : (item.photos && typeof item.photos === 'object')
+                ? [...Array(8)].map((_,i) => item.photos[i] || null)
+                : [null,null,null,null,null,null,null,null],
+            priceHistory: Array.isArray(item.priceHistory) ? item.priceHistory : []
+          }));
+          console.log('[FB] Dati caricati da Firebase (' + items.length + ' articoli)');
+          localStorage.setItem('subito_items', JSON.stringify(items));
+          localStorage.setItem('subito_nextId', nextId);
+          localStorage.setItem('subito_trash', JSON.stringify(trash));
+        }
       }
-    }
-    render();
-    snap();
-    updateUndoUI();
-    showSyncBanner('☁️ Sincronizzato con Firebase');
-  }).catch(e => {
-    console.warn('[FB] Caricamento fallito, uso localStorage:', e);
-    render();
-    snap();
-    updateUndoUI();
-  });
+      fbLoaded = true;
+      filterOrig = 'all'; filterStatus = 'all';
+      render(); snap(); updateUndoUI();
+      showSyncBanner('☁️ Sincronizzato con Firebase');
+    }).catch(e => {
+      console.warn('[FB] Caricamento fallito:', e);
+      fbLoaded = true;
+      filterOrig = 'all'; filterStatus = 'all';
+      render(); snap(); updateUndoUI();
+    });
 
-} catch(e) {
-  console.warn('[FB] Init fallita:', e);
-  render();
-  snap();
-  updateUndoUI();
+  } catch(e) {
+    console.warn('[FB] Init fallita:', e);
+    filterOrig = 'all'; filterStatus = 'all';
+    render(); snap(); updateUndoUI();
+  }
 }
 
 function backupJSON() {
