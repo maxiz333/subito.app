@@ -425,7 +425,7 @@ function saveToStorage() {
   } catch(e){}
   // Salva su Firebase SOLO se già caricato (evita sovrascrittura dati freschi)
   if (window.fbDb && fbLoaded) {
-    firebase.database().ref('subitoapp').set({
+    firebase.database().ref(FB_PATH).set({
       items: items,
       nextId: nextId,
       trash: trash,
@@ -709,6 +709,7 @@ function toggleSlotOv(el) {
   document.querySelectorAll('.pslot.show-ov').forEach(s=>{ if(s!==el) s.classList.remove('show-ov'); });
   el.classList.toggle('show-ov');
 }
+const FB_PATH = 'subitoapp_v2';
 const CLOUDINARY_CLOUD = 'c8i3qkht';
 const CLOUDINARY_PRESET = 'subito_photos';
 
@@ -1793,7 +1794,7 @@ function initApp() {
     window.fbDb = firebase.database();
     console.log('[FB] Connesso a Firebase');
 
-    firebase.database().ref('subitoapp').once('value').then(snapshot => {
+    firebase.database().ref(FB_PATH).once('value').then(snapshot => {
       const data = snapshot.val();
       if (data && data.items) {
         const fbTime = data.lastSaved || 0;
@@ -1875,7 +1876,7 @@ function restoreJSON() {
 
 function forceSaveToFirebase() {
   if (!window.fbDb) { alert('Firebase non connesso!'); return; }
-  firebase.database().ref('subitoapp').set({
+  firebase.database().ref(FB_PATH).set({
     items: items,
     nextId: nextId,
     trash: trash,
