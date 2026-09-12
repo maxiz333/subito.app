@@ -690,18 +690,15 @@ function closeLightbox() {
 }
 function lightboxCambia() {
   const id = lightboxItemId, idx = lightboxIdx;
-  console.log('[LB] Cambia - id:', id, 'idx:', idx);
   closeLightbox();
-  if (id === null || idx === null) { alert('Errore: id o idx null!'); return; }
+  if (id === null || idx === null) return;
   addSlot(id, idx);
 }
 function lightboxRimuovi() {
   const id = lightboxItemId, idx = lightboxIdx;
-  console.log('[LB] Rimuovi - id:', id, 'idx:', idx);
   closeLightbox();
-  if (id === null || idx === null) { alert('Errore: id o idx null!'); return; }
+  if (id === null || idx === null) return;
   const item = items.find(i=>i.id===id);
-  console.log('[LB] item trovato:', !!item);
   if (item) { item.photos[idx]=null; renderPhotoGrid(item); snap(); }
 }
 async function lightboxCopia() {
