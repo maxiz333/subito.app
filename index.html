@@ -688,11 +688,16 @@ function closeLightbox() {
   document.getElementById('lightbox').style.display = 'none';
   lightboxItemId = null; lightboxIdx = null;
 }
-function lightboxCambia() { closeLightbox(); addSlot(lightboxItemId, lightboxIdx); }
-function lightboxRimuovi() {
+function lightboxCambia() {
+  const id = lightboxItemId, idx = lightboxIdx;
   closeLightbox();
-  const item = items.find(i=>i.id===lightboxItemId);
-  if (item) { item.photos[lightboxIdx]=null; renderPhotoGrid(item); snap(); }
+  addSlot(id, idx);
+}
+function lightboxRimuovi() {
+  const id = lightboxItemId, idx = lightboxIdx;
+  closeLightbox();
+  const item = items.find(i=>i.id===id);
+  if (item) { item.photos[idx]=null; renderPhotoGrid(item); snap(); }
 }
 async function lightboxCopia() {
   const url = document.getElementById('lightboxImg').src;
