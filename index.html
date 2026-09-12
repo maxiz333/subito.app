@@ -717,11 +717,11 @@ function addSlot(id, idx) {
   pickImg(async file => {
     const item = items.find(i=>i.id===id);
     if (!item) return;
-    // mostra anteprima locale subito
+    // mostra anteprima locale SOLO visivamente, NON salvare il blob nell'item
     const localUrl = URL.createObjectURL(file);
-    item.photos[idx] = localUrl;
+    const prevUrl = item.photos[idx];
+    item.photos[idx] = localUrl; // temporaneo solo per la UI
     renderPhotoGrid(item);
-    showUploadProgress(idx, 0);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -733,15 +733,19 @@ function addSlot(id, idx) {
       });
       const data = await res.json();
       if (data.secure_url) {
-        item.photos[idx] = data.secure_url;
+        item.photos[idx] = data.secure_url; // sostituisce con URL permanente
         renderPhotoGrid(item);
-        snap();
+        snap(); // salva SOLO dopo che Cloudinary ha risposto
         console.log('[Cloudinary] Foto caricata:', data.secure_url);
       } else {
+        item.photos[idx] = prevUrl; // ripristina URL precedente
+        renderPhotoGrid(item);
         console.error('[Cloudinary] Errore:', data);
         alert('Errore caricamento foto. Riprova.');
       }
     } catch(e) {
+      item.photos[idx] = prevUrl; // ripristina URL precedente
+      renderPhotoGrid(item);
       console.error('[Cloudinary] Upload fallito:', e);
       alert('Errore connessione. Riprova.');
     }
@@ -1806,9 +1810,15 @@ function initApp() {
           items = items.map(item => ({
             ...mkItem(), ...item,
             photos: Array.isArray(item.photos)
-              ? [...Array(8)].map((_,i) => item.photos[i] || null)
+              ? [...Array(8)].map((_,i) => {
+                  const p = item.photos[i] || null;
+                  return (p && p.startsWith('blob:')) ? null : p; // rimuove blob URL salvati per errore
+                })
               : (item.photos && typeof item.photos === 'object')
-                ? [...Array(8)].map((_,i) => item.photos[i] || null)
+                ? [...Array(8)].map((_,i) => {
+                    const p = item.photos[i] || null;
+                    return (p && p.startsWith('blob:')) ? null : p;
+                  })
                 : [null,null,null,null,null,null,null,null],
             priceHistory: Array.isArray(item.priceHistory) ? item.priceHistory : []
           }));
